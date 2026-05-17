@@ -1243,13 +1243,12 @@ textarea:focus-visible {
 
 .analytics-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(210px, 280px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
 }
 
 .analytics-hero-copy,
-.analytics-hero-card,
 .analytics-empty-state,
 .chart-card {
   border: 1px solid var(--border);
@@ -1273,38 +1272,6 @@ textarea:focus-visible {
   margin-top: 10px;
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-.analytics-hero-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 140px;
-  padding: 18px;
-  background:
-    linear-gradient(135deg, rgba(37, 99, 235, 0.22), transparent 58%),
-    color-mix(in srgb, var(--bg-card) 92%, white 8%);
-}
-
-.analytics-hero-card span {
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.analytics-hero-card strong {
-  margin-top: 6px;
-  color: var(--text-primary);
-  font-size: 18px;
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-.analytics-hero-card small {
-  margin-top: 6px;
-  color: var(--text-muted);
-  word-break: break-word;
 }
 
 .analytics-content {
@@ -1604,10 +1571,6 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .analytics-hero-card {
-    min-height: auto;
-  }
-
   .analytics-charts,
   .feedback-grid {
     grid-template-columns: 1fr;
@@ -1625,7 +1588,6 @@ textarea:focus-visible {
   }
 
   .analytics-hero-copy,
-  .analytics-hero-card,
   .analytics-panel .stat-card,
   .chart-card,
   .feedback-block {
