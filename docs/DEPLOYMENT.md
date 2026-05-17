@@ -5,6 +5,8 @@
 ```text
 .
 ├── app.py                  # Vercel/WSGI entrypoint: imports backend.app:app
+├── api/
+│   └── index.py            # Vercel Python Function entrypoint
 ├── backend/
 │   ├── __init__.py
 │   ├── app.py              # Main Flask application
@@ -35,10 +37,10 @@ http://127.0.0.1:5000
 
 ## Vercel Entry Point
 
-Use the root file:
+Use the Vercel Python Function file:
 
 ```text
-app.py
+api/index.py
 ```
 
 It exports the Flask app:
@@ -47,7 +49,7 @@ It exports the Flask app:
 from backend.app import app
 ```
 
-Vercel's Flask backend support detects a Flask `app` instance from recognized entrypoints such as root `app.py`.
+`vercel.json` rewrites all incoming paths to this function, so Flask handles `/`, `/login`, `/chat`, `/api/health`, and the rest of the app routes.
 
 ## Vercel Environment Variables
 
