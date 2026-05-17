@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat - LLaMA 3</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <main class="layout">
+    <aside class="sidebar">
+      <h2>Chats</h2>
+      <button id="newChatBtn">New Chat</button>
+      <div id="sessions"></div>
+      <a href="/analytics">Analytics</a>
+      <a href="/logout">Logout</a>
+    </aside>
+    <section class="chat">
+      <h1>Hello, {{ username or 'User' }}</h1>
+      <div id="messages" class="messages"></div>
+      <form id="chatForm">
+        <input id="messageInput" placeholder="Type your message..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

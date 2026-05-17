@@ -3,40 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analytics — LLaMA 3 Chatbot</title>
+  <title>Analytics - Multi Turn AI Chatbot</title>
   <link rel="stylesheet" href="/static/css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="page-body">
-  <div class="page-shell">
-    <aside class="page-sidebar">
+<body class="page-body analytics-body">
+  <div class="page-shell analytics-shell">
+    <aside class="page-sidebar analytics-sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo">📊 Analytics</div>
+        <div class="sidebar-logo"><span class="sidebar-mark">A</span> Analytics</div>
       </div>
-      <nav class="page-nav">
-        <a class="menu-item" href="/chat">💬 Chat</a>
-        <a class="menu-item active" href="/analytics">📊 Analytics</a>
+      <nav class="page-nav" aria-label="Main navigation">
+        <a class="menu-item" href="/chat">Chat</a>
+        <a class="menu-item active" href="/analytics" aria-current="page">Analytics</a>
       </nav>
+      <div class="analytics-sidebar-note">
+        <span>Dashboard</span>
+        <strong>LLaMA 3 Chatbot</strong>
+        <small>Conversation quality, activity, and feedback insights.</small>
+      </div>
     </aside>
 
-    <main class="page-main">
-      <div class="page-title-group">
-        <div class="logo-icon">📊</div>
-        <div>
-          <h1>Analytics Dashboard</h1>
-          <p class="login-subtitle">Review your chat usage, ratings, and response quality.</p>
+    <main class="page-main analytics-main">
+      <section class="analytics-hero" aria-labelledby="analytics-title">
+        <div class="analytics-hero-copy">
+          <div class="analytics-kicker">Usage intelligence</div>
+          <h1 id="analytics-title">Analytics Dashboard</h1>
+          <p>Review chat activity, user ratings, and response quality in one responsive workspace.</p>
         </div>
-      </div>
+        <div class="analytics-hero-card" aria-label="Current user">
+          <span>Signed in</span>
+          <strong>{{ user.get('name', 'User') }}</strong>
+          <small>{{ user.get('email', '') }}</small>
+        </div>
+      </section>
 
-      <div id="analytics-content">
-        <div class="loading-spinner">Loading analytics...</div>
+      <div id="analytics-content" class="analytics-content">
+        <div class="analytics-loading">
+          <div class="loading-ring" aria-hidden="true"></div>
+          <span>Loading analytics...</span>
+        </div>
       </div>
 
       <div class="page-actions">
         <a href="/chat" class="btn-secondary">Back to Chat</a>
       </div>
     </main>
+  </div>
+
+  <div class="graph-zoom-overlay" id="graph-zoom-overlay" aria-hidden="true">
+    <div class="graph-zoom-panel" role="dialog" aria-modal="true" aria-labelledby="graph-zoom-title">
+      <div class="graph-zoom-header">
+        <div>
+          <span>Expanded graph</span>
+          <h2 id="graph-zoom-title">Graph Preview</h2>
+        </div>
+        <button class="graph-zoom-close" id="graph-zoom-close" type="button" aria-label="Close graph preview">Close</button>
+      </div>
+      <div class="graph-zoom-body" id="graph-zoom-body"></div>
+    </div>
   </div>
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>

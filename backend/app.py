@@ -1,4 +1,4 @@
-"""Flask app for the local chatbot."""
+"""Flask app for multiturn ai chatbot with Google OAuth, SQLite storage, and Groq LLaMA 3 integration."""
 
 import os
 import sqlite3
@@ -7,6 +7,7 @@ import uuid
 import requests
 from collections import Counter
 from datetime import datetime
+from html import escape
 from urllib.parse import quote, urlparse, urljoin
 from flask import (
     Flask, render_template, request, jsonify,
@@ -817,7 +818,7 @@ def submit_logout_feedback():
     return jsonify({"success": True})
 
 
-def svg_chart(title, labels, values, chart_type="bar"):
+def legacy_svg_chart(title, labels, values, chart_type="bar"):
     """Build a lightweight data-uri SVG chart for the analytics page."""
     total = sum(values) or 1
     colors = ["#60a5fa", "#22c55e", "#f59e0b", "#ef4444", "#a78bfa", "#14b8a6"]
@@ -843,6 +844,94 @@ def svg_chart(title, labels, values, chart_type="bar"):
         "<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'>"
         "<rect width='640' height='360' rx='8' fill='#172033'/>"
         f"<text x='28' y='42' fill='#f8fafc' font-size='20' font-family='Arial'>{title}</text>"
+        f"{body}"
+        "</svg>"
+    )
+    return f"data:image/svg+xml;charset=utf-8,{quote(svg)}"
+
+
+def svg_chart(title, labels, values, chart_type="bar"):
+    """Build a compact SVG chart with semantic dashboard colors."""
+    total = sum(values) or 1
+    title_key = title.lower()
+    fallback_colors = ["#2563eb", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"]
+
+    def color_for(label, index):
+        key = str(label).lower()
+        if "correctness" in title_key:
+            if "partial" in key:
+                return "#f59e0b"
+            if "incorrect" in key or "wrong" in key:
+                return "#ef4444"
+            if "correct" in key:
+                return "#22c55e"
+            return "#94a3b8"
+        if "rating" in title_key:
+            rating_colors = {
+                "1": "#ef4444",
+                "2": "#f97316",
+                "3": "#f59e0b",
+                "4": "#3b82f6",
+                "5": "#22c55e",
+            }
+            return rating_colors.get(key[:1], fallback_colors[index % len(fallback_colors)])
+        if "topic" in title_key:
+            topic_colors = {
+                "coding": "#2563eb",
+                "study": "#8b5cf6",
+                "writing": "#14b8a6",
+                "general": "#94a3b8",
+            }
+            return topic_colors.get(key, fallback_colors[index % len(fallback_colors)])
+        if "daily" in title_key:
+            return "#3b82f6"
+        return fallback_colors[index % len(fallback_colors)]
+
+    if chart_type == "pie":
+        cursor = 0
+        segments = []
+        for i, (label, value) in enumerate(zip(labels, values)):
+            percent = (value / total) * 100
+            segments.append(
+                "<circle cx='168' cy='182' r='72' pathLength='100' fill='none' stroke='{color}' "
+                "stroke-width='34' stroke-dasharray='{dash:.2f} {gap:.2f}' "
+                "stroke-dashoffset='-{offset:.2f}' transform='rotate(-90 168 182)'/>".format(
+                    color=color_for(label, i),
+                    dash=percent,
+                    gap=100 - percent,
+                    offset=cursor,
+                )
+            )
+            cursor += percent
+        rows = "".join(
+            f"<text x='290' y='{130 + i * 32}' fill='#cbd5e1' font-size='14' font-family='Arial'>"
+            f"<tspan fill='{color_for(label, i)}'>■</tspan> {escape(str(label))}: {value}</text>"
+            for i, (label, value) in enumerate(zip(labels, values))
+        )
+        body = (
+            "".join(segments)
+            + "<circle cx='168' cy='182' r='45' fill='#172033'/>"
+            + rows
+            if rows
+            else "<text x='28' y='86' fill='#94a3b8' font-size='14'>No data yet</text>"
+        )
+    else:
+        bars = []
+        max_value = max(values or [1])
+        for i, (label, value) in enumerate(zip(labels, values)):
+            width = int((value / max_value) * 320) if values else 0
+            y = 78 + i * 38
+            color = color_for(label, i)
+            bars.append(f"<text x='28' y='{y + 15}' fill='#cbd5e1' font-size='13' font-family='Arial'>{escape(str(label))}</text>")
+            bars.append(f"<rect x='170' y='{y}' width='{width}' height='20' rx='4' fill='{color}'/>")
+            bars.append(f"<text x='{180 + width}' y='{y + 15}' fill='#f8fafc' font-size='13' font-family='Arial'>{value}</text>")
+        body = "".join(bars) or "<text x='28' y='86' fill='#94a3b8' font-size='14'>No data yet</text>"
+
+    svg = (
+        "<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'>"
+        "<rect width='640' height='360' rx='8' fill='#172033'/>"
+        "<rect x='18' y='18' width='604' height='324' rx='8' fill='#0f172a' opacity='0.32'/>"
+        f"<text x='28' y='42' fill='#f8fafc' font-size='20' font-family='Arial'>{escape(str(title))}</text>"
         f"{body}"
         "</svg>"
     )
@@ -949,6 +1038,12 @@ def analytics_graphs():
 
     topic_labels = list(topics.keys())
     topic_values = list(topics.values())
+    topic_colors = {
+        "Coding": "#2563eb",
+        "Study": "#8b5cf6",
+        "Writing": "#14b8a6",
+        "General": "#94a3b8",
+    }
     return jsonify({
         "daily_activity": svg_chart(
             "Daily Activity",
@@ -971,7 +1066,7 @@ def analytics_graphs():
                 "type": "bar",
                 "x": topic_labels,
                 "y": topic_values,
-                "marker": {"color": "#60a5fa"},
+                "marker": {"color": [topic_colors.get(label, "#3b82f6") for label in topic_labels]},
             }],
             "layout": {
                 "paper_bgcolor": "#172033",

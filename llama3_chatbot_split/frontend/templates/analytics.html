@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Analytics</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <main class="card wide">
+    <h1>Analytics Dashboard</h1>
+    <pre id="stats">Loading...</pre>
+    <a href="/chat">Back to chat</a>
+  </main>
+  <script>
+    fetch('/analytics/stats')
+      .then(res => res.json())
+      .then(data => document.getElementById('stats').textContent = JSON.stringify(data, null, 2));
+  </script>
+</body>
+</html>
