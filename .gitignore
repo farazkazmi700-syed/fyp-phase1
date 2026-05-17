@@ -1,0 +1,11 @@
+.env
+.env.*
+__pycache__/
+*.py[cod]
+*.db
+backend/*.db
+.venv/
+venv/
+phase1/
+.vercel/
+instance/

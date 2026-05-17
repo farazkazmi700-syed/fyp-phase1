@@ -1,0 +1,12 @@
+.env
+.env.*
+phase1/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+backend/*.db
+.git/
+.venv/
+venv/
+instance/

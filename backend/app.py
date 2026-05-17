@@ -11,6 +11,7 @@ import uuid
 import requests
 from collections import Counter
 from datetime import datetime
+from tempfile import gettempdir
 from urllib.parse import quote, urlparse, urljoin
 from flask import (
     Flask, render_template, request, jsonify,
@@ -41,7 +42,8 @@ CORS(app, supports_credentials=True)
 GROQ_API_KEY  = os.getenv("GROQ_API_KEY", "").strip()
 GROQ_API_URL  = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions").strip()
 LLAMA_MODEL   = os.getenv("GROQ_MODEL") or os.getenv("LLAMA_MODEL") or "llama-3.1-8b-instant"
-DATABASE_PATH = os.getenv("DATABASE_PATH") or os.path.join(BASE_DIR, "chatbot.db")
+default_database_path = os.path.join(gettempdir(), "chatbot.db") if os.getenv("VERCEL") else os.path.join(BASE_DIR, "chatbot.db")
+DATABASE_PATH = os.getenv("DATABASE_PATH") or default_database_path
 if not os.path.isabs(DATABASE_PATH):
     DATABASE_PATH = os.path.join(BASE_DIR, DATABASE_PATH)
 APP_PORT = int(os.getenv("APP_PORT", "5000"))
