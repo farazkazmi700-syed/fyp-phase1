@@ -1,8 +1,4 @@
-"""
-app.py - Main Flask Application Entry Point
-Multi-Turn AI Chatbot with LLaMA 3 via Groq API
-Architecture: FR1 (System Initialization) bootstraps all modules
-"""
+"""Flask app for the local chatbot."""
 
 import os
 import sqlite3
@@ -19,12 +15,8 @@ from flask import (
 from flask_cors import CORS
 from dotenv import load_dotenv
 from google_auth_oauthlib.flow import Flow
-from google.auth.transport.requests import Request
 
-# ─────────────────────────────────────────────
-# FR1: SYSTEM INITIALIZATION
-# Load environment variables and configure app
-# ─────────────────────────────────────────────
+# App setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(BASE_DIR)
 FRONTEND_DIR = os.path.join(PROJECT_DIR, "frontend")
@@ -38,7 +30,7 @@ app = Flask(__name__,
 app.secret_key = os.getenv("SECRET_KEY") or os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-in-prod")
 CORS(app, supports_credentials=True)
 
-# ── Groq API config (LLaMA 3 model) ──────────
+# Groq API config
 GROQ_API_KEY  = os.getenv("GROQ_API_KEY", "").strip()
 GROQ_API_URL  = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions").strip()
 LLAMA_MODEL   = os.getenv("GROQ_MODEL") or os.getenv("LLAMA_MODEL") or "llama-3.1-8b-instant"
@@ -48,7 +40,7 @@ if not os.path.isabs(DATABASE_PATH):
     DATABASE_PATH = os.path.join(BASE_DIR, DATABASE_PATH)
 APP_PORT = int(os.getenv("APP_PORT", "5000"))
 
-# ── Google OAuth 2.0 config ─────────────────
+# Google OAuth config
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "")
@@ -59,10 +51,7 @@ SCOPES = [
 ]
 
 
-# ─────────────────────────────────────────────
-# DATABASE LAYER  (FR3 – Data Storage Operations)
-# SQLite connection lifecycle tied to request
-# ─────────────────────────────────────────────
+# Database
 
 def get_db():
     """Open (or reuse) the SQLite connection for this request."""
@@ -81,15 +70,10 @@ def close_db(error):
 
 
 def init_db():
-    """
-    FR1 – Database initialization.
-    Creates all required tables on first run:
-      users, sessions, messages, feedback, analytics
-    """
+    """Create the SQLite tables used by the app."""
     db = sqlite3.connect(DATABASE_PATH)
     cursor = db.cursor()
 
-    # Users Collection
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id              TEXT PRIMARY KEY,
@@ -101,7 +85,6 @@ def init_db():
         )
     """)
 
-    # Sessions Collection
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_sessions (
             id          TEXT PRIMARY KEY,
@@ -113,7 +96,6 @@ def init_db():
         )
     """)
 
-    # Messages Collection
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id          TEXT PRIMARY KEY,
@@ -126,7 +108,6 @@ def init_db():
         )
     """)
 
-    # Feedback Collection
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
             id              TEXT PRIMARY KEY,
@@ -152,7 +133,6 @@ def init_db():
         )
     """)
 
-    # Analytics Collection
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS analytics (
             id          TEXT PRIMARY KEY,
@@ -169,12 +149,10 @@ def init_db():
         cursor.execute("ALTER TABLE feedback ADD COLUMN comment TEXT")
         db.commit()
     db.close()
-    print("[FR1] Database initialized successfully.")
+    print("Database initialized.")
 
 
-# ─────────────────────────────────────────────
-# HELPER UTILITIES
-# ─────────────────────────────────────────────
+# Helpers
 
 def oauth_redirect_uri() -> str:
     """Return the callback URI Google should send users back to."""
@@ -242,7 +220,7 @@ def now_iso() -> str:
 
 
 def log_analytics(user_id: str, event_type: str, metadata: dict = None):
-    """FR3 – Write an analytics event row."""
+    """Write an analytics event row."""
     db = get_db()
     db.execute(
         "INSERT INTO analytics (id, user_id, event_type, metadata, created_at) VALUES (?,?,?,?,?)",
@@ -268,7 +246,7 @@ def current_user() -> dict:
 
 
 def require_login(fn):
-    """Decorator – redirect to login if user is not authenticated."""
+    """Redirect to login if the user is not authenticated."""
     from functools import wraps
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -280,9 +258,7 @@ def require_login(fn):
     return wrapper
 
 
-# ─────────────────────────────────────────────
-# FR4: LLaMA 3 MODEL INTEGRATION (via Groq API)
-# ─────────────────────────────────────────────
+# Groq chat
 
 def json_payload() -> dict:
     """Return a JSON request body without raising a 500 for bad or empty JSON."""
@@ -318,7 +294,7 @@ def query_llama(messages: list) -> str:
     `messages` is a list of {"role": "user"|"assistant"|"system", "content": "..."}
     """
     if not GROQ_API_KEY:
-        return "⚠️ GROQ_API_KEY is not configured. Please add it to your .env file."
+        return "GROQ_API_KEY is not configured. Please add it to your .env file."
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -339,20 +315,18 @@ def query_llama(messages: list) -> str:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
     except requests.exceptions.Timeout:
-        return "⚠️ Request timed out. Please try again."
+        return "Request timed out. Please try again."
     except requests.exceptions.RequestException as e:
-        return f"⚠️ API error: {str(e)}"
+        return f"API error: {str(e)}"
     except (KeyError, IndexError):
-        return "⚠️ Unexpected response format from the API."
+        return "Unexpected response format from the API."
 
 
-# ─────────────────────────────────────────────
-# FR2: FRONTEND ROUTES – Authentication
-# ─────────────────────────────────────────────
+# Auth routes
 
 @app.route("/")
 def index():
-    """Root – redirect to chat if logged in, else to login."""
+    """Redirect to chat if logged in, otherwise to login."""
     if current_user_id():
         return redirect(url_for("chat"))
     return redirect(url_for("login"))
@@ -360,7 +334,7 @@ def index():
 
 @app.route("/login", methods=["GET"])
 def login():
-    """FR2 – Google OAuth login page."""
+    """Show the login page."""
     if current_user_id():
         return redirect(url_for("chat"))
     return render_template("login.html")
@@ -369,7 +343,7 @@ def login():
 @app.route("/auth/login")
 @app.route("/auth/google")
 def auth_login():
-    """FR2 – Initiate Google OAuth flow."""
+    """Start Google OAuth."""
     try:
         flow = get_google_oauth_flow()
         session["post_auth_redirect"] = safe_redirect_target(request.args.get("next") or url_for("chat"))
@@ -386,7 +360,7 @@ def auth_login():
 
 @app.route("/auth/callback")
 def auth_callback():
-    """FR2/FR3 – Handle Google OAuth callback."""
+    """Handle the Google OAuth callback."""
     try:
         code = request.args.get("code")
         if not code:
@@ -449,14 +423,12 @@ def logout():
     return redirect(url_for("login"))
 
 
-# ─────────────────────────────────────────────
-# FR2: FRONTEND ROUTES – Chat UI
-# ─────────────────────────────────────────────
+# Chat routes
 
 @app.route("/chat")
 @require_login
 def chat():
-    """FR2 – Main chat interface."""
+    """Show the main chat page."""
     db       = get_db()
     sessions = db.execute(
         "SELECT * FROM chat_sessions WHERE user_id = ? ORDER BY updated_at DESC",
@@ -482,14 +454,12 @@ def analytics_page():
     return render_template("analytics.html", user=current_user())
 
 
-# ─────────────────────────────────────────────
-# FR3/FR4: API ROUTES – Session Management
-# ─────────────────────────────────────────────
+# Session API
 
 @app.route("/api/sessions", methods=["POST"])
 @require_login
 def create_session():
-    """FR3 – Create a new chat session."""
+    """Create a new chat session."""
     db         = get_db()
     session_id = str(uuid.uuid4())
     ts         = now_iso()
@@ -507,7 +477,7 @@ def create_session():
 @app.route("/api/sessions", methods=["GET"])
 @require_login
 def list_sessions():
-    """FR3 – Return all chat sessions for the logged-in user."""
+    """Return all chat sessions for the logged-in user."""
     db   = get_db()
     rows = db.execute(
         "SELECT * FROM chat_sessions WHERE user_id = ? ORDER BY updated_at DESC",
@@ -524,7 +494,7 @@ def list_sessions():
 @app.route("/api/sessions/<session_id>", methods=["DELETE"])
 @require_login
 def delete_session(session_id):
-    """FR3 – Delete a chat session and its messages."""
+    """Delete a chat session and its messages."""
     db = get_db()
     # Verify ownership
     row = db.execute(
@@ -541,14 +511,12 @@ def delete_session(session_id):
     return jsonify({"success": True})
 
 
-# ─────────────────────────────────────────────
-# FR3/FR4: API ROUTES – Messages & LLaMA 3
-# ─────────────────────────────────────────────
+# Message API
 
 @app.route("/api/sessions/<session_id>/messages", methods=["GET"])
 @require_login
 def get_messages(session_id):
-    """FR3 – Fetch all messages for a session."""
+    """Fetch all messages for a session."""
     db = get_db()
     # Verify ownership
     session_row = db.execute(
@@ -568,17 +536,10 @@ def get_messages(session_id):
 @app.route("/api/sessions/<session_id>/messages", methods=["POST"])
 @require_login
 def send_message(session_id):
-    """
-    FR3/FR4 – Core message handler.
-    1. Save user message
-    2. Fetch conversation history
-    3. Route to LLaMA 3 via Groq
-    4. Save assistant response
-    5. Return response to frontend
-    """
+    """Save a user message, get a Groq reply, and return it as JSON."""
     db = get_db()
 
-    # Verify ownership
+    # Ensure the current user owns this session.
     session_row = db.execute(
         "SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?",
         (session_id, current_user_id())
@@ -593,14 +554,12 @@ def send_message(session_id):
 
     ts = now_iso()
 
-    # ── Save user message ──────────────────────
     user_msg_id = str(uuid.uuid4())
     db.execute(
         "INSERT INTO messages (id, session_id, user_id, role, content, created_at) VALUES (?,?,?,?,?,?)",
         (user_msg_id, session_id, current_user_id(), "user", content, ts)
     )
 
-    # ── Build conversation history for LLaMA ──
     history_rows = db.execute(
         "SELECT role, content FROM messages WHERE session_id = ? ORDER BY created_at ASC",
         (session_id,)
@@ -608,24 +567,20 @@ def send_message(session_id):
 
     llm_messages = build_llm_messages(history_rows)
 
-    # ── FR4: Query LLaMA 3 via Groq ────────────
     assistant_content = query_llama(llm_messages)
 
-    # ── Save assistant response ────────────────
     asst_msg_id = str(uuid.uuid4())
     db.execute(
         "INSERT INTO messages (id, session_id, user_id, role, content, created_at) VALUES (?,?,?,?,?,?)",
         (asst_msg_id, session_id, current_user_id(), "assistant", assistant_content, ts)
     )
 
-    # ── Update session timestamp & auto-title ─
-    # Auto-title session from first user message
     msg_count = db.execute(
         "SELECT COUNT(*) as cnt FROM messages WHERE session_id = ?", (session_id,)
     ).fetchone()["cnt"]
 
     if msg_count <= 2:
-        short_title = content[:40] + ("…" if len(content) > 40 else "")
+        short_title = content[:40] + ("..." if len(content) > 40 else "")
         db.execute(
             "UPDATE chat_sessions SET title = ?, updated_at = ? WHERE id = ?",
             (short_title, ts, session_id)
@@ -779,17 +734,12 @@ def send_message_frontend():
     })
 
 
-# ─────────────────────────────────────────────
-# FR2/FR3: API ROUTES – Feedback Panel
-# ─────────────────────────────────────────────
+# Feedback API
 
 @app.route("/api/feedback", methods=["POST"])
 @require_login
 def submit_feedback():
-    """
-    FR2/FR3 – Accept user feedback on an assistant message.
-    Stores: rating (1-5), correctness, length_type
-    """
+    """Save feedback for an assistant message."""
     db   = get_db()
     data = json_payload()
 
@@ -1066,16 +1016,11 @@ def analytics_health():
     return health_check()
 
 
-# ─────────────────────────────────────────────
-# FR5: SERVICE CONNECTIVITY – Health Check
-# ─────────────────────────────────────────────
+# Health check
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
-    """
-    FR5 – Verify all services are reachable:
-    backend, database, and Groq API key presence.
-    """
+    """Return database, Groq, and OAuth status."""
     db_ok    = False
     groq_ok  = bool(GROQ_API_KEY)
     oauth_ok = bool(google_credentials_path() or (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET))
@@ -1097,15 +1042,13 @@ def health_check():
     })
 
 
-# ─────────────────────────────────────────────
-# FR1: APPLICATION BOOTSTRAP
-# ─────────────────────────────────────────────
+# Local startup
 
 init_db()
 
 
 if __name__ == "__main__":
-    print("[FR1] System initialization complete.")
-    print(f"[FR4] Using model: {LLAMA_MODEL} via Groq API")
-    print(f"[FR5] Starting Flask server on http://127.0.0.1:{APP_PORT}")
+    print("System initialization complete.")
+    print(f"Using model: {LLAMA_MODEL} via Groq API")
+    print(f"Starting Flask server on http://127.0.0.1:{APP_PORT}")
     app.run(debug=True, port=APP_PORT)

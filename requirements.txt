@@ -1,32 +1,6 @@
-# ============================================================
-#  Multi-Turn AI Chatbot — Python Dependencies
-#  Install: pip install -r requirements.txt
-# ============================================================
-
-# ── Web Framework ────────────────────────────────────────────
 flask==3.0.3
-flask-cors==4.0.1          # Allow frontend to call backend from different origin
-
-# ── Groq API Client (LLaMA 3) ───────────────────────────────
-# Uses Groq's OpenAI-compatible HTTP API via requests.
-
-# ── Authentication ───────────────────────────────────────────
-authlib==1.3.1             # Google OAuth 2.0
-google-auth==2.29.0        # Google OAuth token/session helpers
-google-auth-oauthlib==1.2.0 # Google OAuth Flask flow
-requests==2.32.3           # HTTP calls to Google APIs
-pyjwt==2.8.0               # JWT token signing/verification
-
-# ── Analytics & Graphs ──────────────────────────────────────
-pandas==2.2.2              # Data processing
-matplotlib==3.9.0          # Graph generation (bar, pie charts)
-seaborn==0.13.2            # Prettier statistical charts
-plotly==5.24.1             # Interactive visual analytics
-scikit-learn==1.5.0        # Topic classification (optional phase)
-
-# ── Utilities ────────────────────────────────────────────────
-python-dotenv==1.0.1       # Load .env file
-itsdangerous==2.2.0        # Secure cookie signing
-gunicorn==22.0.0           # Production WSGI server for Flask hosting
-
-
+flask-cors==4.0.1
+google-auth==2.29.0
+google-auth-oauthlib==1.2.0
+python-dotenv==1.0.1
+requests==2.32.3

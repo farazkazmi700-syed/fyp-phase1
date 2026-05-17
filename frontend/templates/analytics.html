@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics — LLaMA 3 Chatbot</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="page-body">
+  <div class="page-shell">
+    <aside class="page-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">📊 Analytics</div>
+      </div>
+      <nav class="page-nav">
+        <a class="menu-item" href="/chat">💬 Chat</a>
+        <a class="menu-item active" href="/analytics">📊 Analytics</a>
+      </nav>
+    </aside>
+
+    <main class="page-main">
+      <div class="page-title-group">
+        <div class="logo-icon">📊</div>
+        <div>
+          <h1>Analytics Dashboard</h1>
+          <p class="login-subtitle">Review your chat usage, ratings, and response quality.</p>
+        </div>
+      </div>
+
+      <div id="analytics-content">
+        <div class="loading-spinner">Loading analytics...</div>
+      </div>
+
+      <div class="page-actions">
+        <a href="/chat" class="btn-secondary">Back to Chat</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="/static/js/analytics.js"></script>
+</body>
+</html>
