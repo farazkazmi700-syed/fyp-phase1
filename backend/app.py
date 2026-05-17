@@ -204,8 +204,9 @@ def get_google_oauth_flow():
 
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         raise RuntimeError(
-            "Google OAuth is not configured. Add backend/credentials.json or set "
-            "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file."
+            "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and "
+            "GOOGLE_CLIENT_SECRET in your environment variables. On Vercel, add "
+            "them in Project Settings > Environment Variables, then redeploy."
         )
 
     client_config = {
@@ -1078,6 +1079,7 @@ def health_check():
     """
     db_ok    = False
     groq_ok  = bool(GROQ_API_KEY)
+    oauth_ok = bool(google_credentials_path() or (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET))
 
     try:
         db = get_db()
@@ -1087,9 +1089,10 @@ def health_check():
         pass
 
     return jsonify({
-        "status":    "ok" if (db_ok and groq_ok) else "degraded",
+        "status":    "ok" if (db_ok and groq_ok and oauth_ok) else "degraded",
         "database":  "connected" if db_ok else "error",
         "groq_api":  "configured" if groq_ok else "missing",
+        "google_oauth": "configured" if oauth_ok else "missing",
         "model":     LLAMA_MODEL,
         "timestamp": now_iso()
     })

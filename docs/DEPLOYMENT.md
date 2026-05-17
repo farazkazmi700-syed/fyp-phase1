@@ -64,10 +64,32 @@ GOOGLE_CLIENT_SECRET
 GOOGLE_REDIRECT_URI
 ```
 
+Vercel does not deploy your local `.env` file. Add these values at:
+
+```text
+Vercel Project -> Settings -> Environment Variables
+```
+
+Select the environments you use, usually:
+
+```text
+Production
+Preview
+Development
+```
+
 For production Google OAuth, set:
 
 ```text
 GOOGLE_REDIRECT_URI=https://your-vercel-domain.vercel.app/auth/callback
+```
+
+After adding or changing environment variables, redeploy the project. Existing deployments do not automatically pick up new values.
+
+Also add the same callback URL in Google Cloud Console:
+
+```text
+APIs & Services -> Credentials -> OAuth 2.0 Client -> Authorized redirect URIs
 ```
 
 ## Database Note
