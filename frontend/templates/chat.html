@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Multi Turn AI Chatbot</title>
+  <title>Chat</title>
   <link rel="stylesheet" href="/static/css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -48,7 +48,7 @@
   <header class="chat-header">
     <button class="btn-icon" id="btn-sidebar-toggle" title="Toggle sidebar">☰</button>
     <div class="chat-title">
-      <span id="current-session-title">New Chat</span>
+      <span id="current-session-title"> Chat with </span>
       <span class="model-badge">llama3</span>
     </div>
     <div class="connection-status" id="connection-status" title="AI connection status">
@@ -63,7 +63,7 @@
     <div class="welcome-message" id="welcome-message">
       <div class="welcome-icon">🤖</div>
       <h2>Hello, {{ user.get('name', 'there') }}!</h2>
-      <p>I'm <strong>LLaMA 3</strong>, your AI assistant.<br>Ask me anything - I remember our conversation.</p>
+      <p>I'm <strong>LLaMA 3</strong>, A multi-turn AI chatbot.<br>Ask me anything - I remember our conversation.</p>
       <div class="suggestion-chips">
         <button class="chip" onclick="app.sendSuggestion('Explain quantum computing in simple terms')">Quantum computing</button>
         <button class="chip" onclick="app.sendSuggestion('Write a Python function to sort a list')">Python help</button>

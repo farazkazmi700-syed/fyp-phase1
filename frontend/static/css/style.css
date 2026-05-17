@@ -1381,15 +1381,6 @@ textarea:focus-visible {
   border-color: rgba(96, 165, 250, 0.38);
 }
 
-.stat-icon {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  color: rgba(148, 163, 184, 0.42);
-  font-size: 12px;
-  font-weight: 800;
-}
-
 .analytics-panel .stat-card h4 {
   margin-bottom: 6px;
 }

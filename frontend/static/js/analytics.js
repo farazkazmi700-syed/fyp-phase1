@@ -166,25 +166,21 @@ const analyticsPage = {
     return `
       <section class="analytics-panel" aria-label="Analytics summary">
         <div class="stat-card stat-card-featured">
-          <div class="stat-icon">01</div>
           <h4>Total Messages</h4>
           <div class="stat-value">${stats.total_messages || 0}</div>
           <div class="stat-sub">${stats.user_messages || 0} sent / ${stats.assistant_messages || 0} received</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">02</div>
           <h4>Sessions</h4>
           <div class="stat-value">${stats.total_sessions || 0}</div>
           <div class="stat-sub">${stats.messages_last_7_days || 0} messages last 7 days</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">03</div>
           <h4>Average Rating</h4>
           <div class="stat-value">${stats.avg_rating ?? '--'} / 5</div>
           <div class="stat-sub">${stats.total_feedback || 0} feedback entries</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">04</div>
           <h4>Top Topic</h4>
           <div class="stat-value stat-value-text">${analyticsPage.escapeHtml(stats.top_topic || 'No topic data')}</div>
           <div class="stat-sub">${stats.avg_messages_per_session || 0} avg messages per session</div>
